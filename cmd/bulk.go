@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strconv"
 
@@ -62,7 +63,7 @@ The expected json is:
               "range": 86400
             },
             "lower_is_better": false,
-            "stream_id": 1,
+            "stream_id": "0",
             "trend": true,
             "query": "foo bar"
           }
@@ -72,29 +73,25 @@ The expected json is:
   ]
 }
 
-Please notice that when creating dashboards widgets are not allowed, 
-behind the scene the widget are extracted from the dashboard structure.
-Also, note that the value of the field "stream_id" in the widget object
-reffer to the stream position in the stream list.`,
+Please notice that when creating dashboards graylog doesn't accept widgets, 
+behind the scene the widgets are extracted from the dashboard structure and 
+build it one by one replacesing the stream_id value with the stream id in 
+the position definied for the value stream_id.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		definition, err := ioutil.ReadFile(definitions)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		bulkObject := bulk.Bulk{}
 		if err := json.Unmarshal(definition, &bulkObject); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		updatedStream := make([]stream.Stream, len(bulkObject.Streams))
 		for index, streamToCreate := range bulkObject.Streams {
 			if err := createStream(&streamToCreate); err != nil {
-				fmt.Println(err)
-
-				os.Exit(1)
+				log.Fatalln(err)
 			}
 
 			updatedStream[index] = streamToCreate
@@ -102,9 +99,7 @@ reffer to the stream position in the stream list.`,
 
 		for _, dashboardToCreate := range bulkObject.Dashboards {
 			if err := createDashboard(&dashboardToCreate, updatedStream); err != nil {
-				fmt.Println(err)
-
-				os.Exit(1)
+				log.Fatalln(err)
 			}
 		}
 	},
@@ -115,8 +110,12 @@ func init() {
 	dashboardClient = api.NewDashboardClient(graylog)
 	streamClient = api.NewStreamClient(graylog)
 
-	bulkCmd.Flags().StringVarP(&definitions, "config", "c", "", "config file containing the definitions")
-	bulkCmd.MarkFlagRequired("config")
+	bulkCmd.
+		Flags().
+		StringVarP(&definitions, "config", "c", "", "config file containing the definitions")
+	if err := bulkCmd.MarkFlagRequired("config"); err != nil {
+		log.Fatalln("no config flag was found")
+	}
 
 	rootCmd.AddCommand(bulkCmd)
 }
@@ -155,7 +154,7 @@ func createWidget(widgetToCreate dashboard.Widget, dashboardID string, streams [
 	}
 
 	widgetToCreate.Config.StreamID = *streams[streamPosition].ID
-	_, err = widgetClient.Create(widgetToCreate, dashboardID)
+	widgetToCreate.Config.StreamID, err = widgetClient.Create(widgetToCreate, dashboardID)
 
 	return err
 }

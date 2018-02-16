@@ -2,9 +2,8 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/dto/stream"
@@ -28,8 +27,7 @@ var ListStreamsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		streams, err := streamClient.List()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		prettyPrint(streams)
@@ -44,8 +42,7 @@ var GetStreamCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stream, err := streamClient.Get(streamID)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		prettyPrint(stream)
@@ -85,47 +82,52 @@ The expected json is:
 	Run: func(cmd *cobra.Command, args []string) {
 		definition, err := ioutil.ReadFile(definitions)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		streamToCreate := stream.Stream{}
 		if err := json.Unmarshal(definition, &streamToCreate); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		list, err := streamClient.List()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		for _, streamFound := range list.Streams {
 			if streamFound.Title == streamToCreate.Title {
-				fmt.Println("stream already exists")
-				os.Exit(1)
+				log.Fatalln("stream already exists")
 			}
 		}
 
 		streamID, err := streamClient.Create(streamToCreate)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
-		fmt.Printf("stream id: %s", streamID)
+		log.Printf("stream id: %s", streamID)
 	},
 }
 
 func init() {
 	streamClient = api.NewStreamClient(graylog)
 
-	GetStreamCmd.Flags().StringVarP(&streamID, "stream_id", "s", "", "id of stream to find")
+	GetStreamCmd.
+		Flags().
+		StringVarP(&streamID, "stream_id", "s", "", "id of stream to find")
 	GetStreamCmd.MarkFlagRequired("stream_id")
+	if err := GetStreamCmd.MarkFlagRequired("stream_id"); err != nil {
+		log.Fatalln("no stream_id flag was found")
+	}
 
-	CreateStreamCmd.Flags().StringVarP(&definitions, "config", "c", "", "config file containing the stream definition")
+	CreateStreamCmd.
+		Flags().
+		StringVarP(&definitions, "config", "c", "", "config file containing the stream definition")
 	CreateStreamCmd.MarkFlagRequired("config")
+	if err := CreateStreamCmd.MarkFlagRequired("config"); err != nil {
+		log.Fatalln("no config flag was found")
+	}
 
 	streamsCmd.AddCommand(ListStreamsCmd)
 	streamsCmd.AddCommand(GetStreamCmd)

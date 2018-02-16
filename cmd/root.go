@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -40,8 +40,7 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 }
 
@@ -58,7 +57,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
-		os.Exit(1)
+		return
 	}
 
 	service = srv.New(viper.GetString("client.base_url"), viper.GetInt("client.timeout"))
@@ -68,7 +67,8 @@ func initConfig() {
 func prettyPrint(object interface{}) {
 	prettyObject, err := json.MarshalIndent(object, "", "  ")
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln(err)
 	}
+
 	println(string(prettyObject))
 }

@@ -2,9 +2,8 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/dto/dashboard"
@@ -31,8 +30,7 @@ var GetWidgetCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		widget, err := widgetClient.Get(widgetID, dashboardWidgetID)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		prettyPrint(widget)
@@ -64,36 +62,31 @@ The expected structure is:
 	Run: func(cmd *cobra.Command, args []string) {
 		definition, err := ioutil.ReadFile(definitions)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		widgetToCreate := dashboard.Widget{}
 		if err := json.Unmarshal(definition, &widgetToCreate); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		dashboard, err := dashboardClient.Get(dashboardWidgetID)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		for _, widgetFound := range dashboard.Widgets {
 			if widgetFound.Description == widgetToCreate.Description {
-				fmt.Println("widget already exists")
-				os.Exit(1)
+				log.Fatalln("widget already exists")
 			}
 		}
 
 		widgetID, err := widgetClient.Create(widgetToCreate, dashboardWidgetID)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
-		fmt.Printf("widget id: %s", widgetID)
+		log.Printf("widget id: %s", widgetID)
 	},
 }
 
@@ -103,15 +96,37 @@ func init() {
 	widgetClient = api.NewWidgetClient(graylog)
 	dashboardClient = api.NewDashboardClient(graylog)
 
-	GetWidgetCmd.Flags().StringVarP(&dashboardWidgetID, "dashboard_id", "d", "", "id of dashboard containing the widget")
+	GetWidgetCmd.
+		Flags().
+		StringVarP(&dashboardWidgetID, "dashboard_id", "d", "", "id of dashboard containing the widget")
 	GetWidgetCmd.MarkFlagRequired("dashboard_id")
-	GetWidgetCmd.Flags().StringVarP(&widgetID, "widget_id", "w", "", "id of widget to find")
-	GetWidgetCmd.MarkFlagRequired("widget_id")
+	if err := GetWidgetCmd.MarkFlagRequired("dashboard_id"); err != nil {
+		log.Fatalln("no dashboard_id flag was found")
+	}
 
-	CreateWidgetCmd.Flags().StringVarP(&dashboardWidgetID, "dashboard_id", "d", "", "id of dashboard containing the widget")
+	GetWidgetCmd.
+		Flags().
+		StringVarP(&widgetID, "widget_id", "w", "", "id of widget to find")
+	GetWidgetCmd.MarkFlagRequired("widget_id")
+	if err := GetWidgetCmd.MarkFlagRequired("widget_id"); err != nil {
+		log.Fatalln("no widget_id flag was found")
+	}
+
+	CreateWidgetCmd.
+		Flags().
+		StringVarP(&dashboardWidgetID, "dashboard_id", "d", "", "id of dashboard containing the widget")
 	CreateWidgetCmd.MarkFlagRequired("dashboard_id")
-	CreateWidgetCmd.Flags().StringVarP(&definitions, "config", "c", "", "config file containing the widget definition")
+	if err := CreateWidgetCmd.MarkFlagRequired("dashboard_id"); err != nil {
+		log.Fatalln("no dashboard_id flag was found")
+	}
+
+	CreateWidgetCmd.
+		Flags().
+		StringVarP(&definitions, "config", "c", "", "config file containing the widget definition")
 	CreateWidgetCmd.MarkFlagRequired("config")
+	if err := CreateWidgetCmd.MarkFlagRequired("config"); err != nil {
+		log.Fatalln("no config flag was found")
+	}
 
 	widgetCmd.AddCommand(GetWidgetCmd)
 	widgetCmd.AddCommand(CreateWidgetCmd)

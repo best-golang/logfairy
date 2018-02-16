@@ -31,7 +31,7 @@ func New(BaseURL string, timeout int) Service {
 		BaseURL: BaseURL,
 		client: http.Client{
 			Transport: &http.Transport{
-				Dial: TimeoutDialer(connectionTimeout),
+				Dial: timeoutDialer(connectionTimeout),
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func (service Service) buildURL(endpoint string) string {
 	return service.BaseURL + endpoint
 }
 
-func TimeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
 	return func(netw, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(netw, addr, cTimeout)
 		if err != nil {

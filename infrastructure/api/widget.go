@@ -3,14 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/uniplaces/logfairy/dto/dashboard"
 	"github.com/uniplaces/logfairy/infrastructure/api/dto"
 )
 
-// endpoint constants
+// endpoint used from widget client
 const (
 	// /api/dashboards/<dashboard_id>/widgets/<widget_id>
 	singleWidget = "/api/dashboards/%s/widgets/%s"
@@ -19,6 +18,7 @@ const (
 	widgetTokenName = "widgets"
 )
 
+// WidgetClient is a graylog client specialized in widget actions
 type WidgetClient struct {
 	Graylog
 }
@@ -28,6 +28,7 @@ func NewWidgetClient(graylog Graylog) WidgetClient {
 	return WidgetClient{Graylog: graylog}
 }
 
+// Get try to return a widget given the widget id and the dashboard id
 func (widgetClient *WidgetClient) Get(widgetID string, dashnoardID string) (dashboard.Widget, error) {
 	auth, err := widgetClient.getAuth(widgetTokenName)
 	if err != nil {
@@ -40,12 +41,8 @@ func (widgetClient *WidgetClient) Get(widgetID string, dashnoardID string) (dash
 		return dashboard.Widget{}, err
 	}
 
-	failure, err := widgetClient.handleFailure(response, status)
-	if err != nil {
+	if err := widgetClient.handleFailure(response, status); err != nil {
 		return dashboard.Widget{}, err
-	}
-	if failure != nil {
-		return dashboard.Widget{}, errors.New(failure.Message)
 	}
 
 	dashboardFound := dashboard.Widget{}
@@ -56,6 +53,7 @@ func (widgetClient *WidgetClient) Get(widgetID string, dashnoardID string) (dash
 	return dashboardFound, nil
 }
 
+// Create create a widget for the given dashboard
 func (widgetClient *WidgetClient) Create(widgetToCreate dashboard.Widget, dashnoardID string) (string, error) {
 	auth, err := widgetClient.getAuth(widgetTokenName)
 	if err != nil {
@@ -73,12 +71,8 @@ func (widgetClient *WidgetClient) Create(widgetToCreate dashboard.Widget, dashno
 		return "", err
 	}
 
-	failure, err := widgetClient.handleFailure(response, status)
-	if err != nil {
+	if err := widgetClient.handleFailure(response, status); err != nil {
 		return "", err
-	}
-	if failure != nil {
-		return "", errors.New(failure.Message)
 	}
 
 	success := dto.WidgetCreation{}

@@ -3,14 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/uniplaces/logfairy/dto/dashboard"
 	"github.com/uniplaces/logfairy/infrastructure/api/dto"
 )
 
-// endpoint constants
+// endpoint used from dashboard client
 const (
 	dashboards = "/api/dashboards"
 	// /api/dashboards/<deashboard_id>
@@ -18,6 +17,7 @@ const (
 	dashboardTokenName = "dashboards"
 )
 
+// DashboardClient is a graylog client specialized in dashboard actions
 type DashboardClient struct {
 	Graylog
 }
@@ -27,6 +27,7 @@ func NewDashboardClient(graylog Graylog) DashboardClient {
 	return DashboardClient{Graylog: graylog}
 }
 
+// List return all the dashboards it can reach
 func (dashboardClient *DashboardClient) List() (dashboard.Dashboards, error) {
 	auth, err := dashboardClient.getAuth(dashboardTokenName)
 	if err != nil {
@@ -38,12 +39,8 @@ func (dashboardClient *DashboardClient) List() (dashboard.Dashboards, error) {
 		return dashboard.Dashboards{}, err
 	}
 
-	failure, err := dashboardClient.handleFailure(response, status)
-	if err != nil {
+	if err := dashboardClient.handleFailure(response, status); err != nil {
 		return dashboard.Dashboards{}, err
-	}
-	if failure != nil {
-		return dashboard.Dashboards{}, errors.New(failure.Message)
 	}
 
 	list := dashboard.Dashboards{}
@@ -54,6 +51,7 @@ func (dashboardClient *DashboardClient) List() (dashboard.Dashboards, error) {
 	return list, nil
 }
 
+// Get try to return a dashboard given the dashboard id
 func (dashboardClient *DashboardClient) Get(dashboardID string) (dashboard.Dashboard, error) {
 	auth, err := dashboardClient.getAuth(dashboardTokenName)
 	if err != nil {
@@ -66,12 +64,8 @@ func (dashboardClient *DashboardClient) Get(dashboardID string) (dashboard.Dashb
 		return dashboard.Dashboard{}, err
 	}
 
-	failure, err := dashboardClient.handleFailure(response, status)
-	if err != nil {
+	if err := dashboardClient.handleFailure(response, status); err != nil {
 		return dashboard.Dashboard{}, err
-	}
-	if failure != nil {
-		return dashboard.Dashboard{}, errors.New(failure.Message)
 	}
 
 	dashboardFound := dashboard.Dashboard{}
@@ -82,6 +76,7 @@ func (dashboardClient *DashboardClient) Get(dashboardID string) (dashboard.Dashb
 	return dashboardFound, nil
 }
 
+// Create create a dashboard
 func (dashboardClient *DashboardClient) Create(dashboardToCreate dashboard.Dashboard) (string, error) {
 	auth, err := dashboardClient.getAuth(dashboardTokenName)
 	if err != nil {
@@ -98,12 +93,8 @@ func (dashboardClient *DashboardClient) Create(dashboardToCreate dashboard.Dashb
 		return "", err
 	}
 
-	failure, err := dashboardClient.handleFailure(response, status)
-	if err != nil {
+	if err := dashboardClient.handleFailure(response, status); err != nil {
 		return "", err
-	}
-	if failure != nil {
-		return "", errors.New(failure.Message)
 	}
 
 	success := dto.DashboardCreation{}

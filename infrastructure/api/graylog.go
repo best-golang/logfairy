@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/uniplaces/logfairy/infrastructure/api/dto"
 	"github.com/uniplaces/logfairy/infrastructure/api/service"
@@ -11,8 +12,12 @@ import (
 
 // endpoint constants
 const (
-	// users/<username>/tokens/<token_name>
+	// /api/users/<username>/tokens/<token_name>
 	tokensStream = "/api/users/%s/tokens/%s"
+)
+
+const (
+	authType = "token"
 )
 
 var headers = map[string]string{
@@ -42,7 +47,7 @@ func (graylog *Graylog) getAuth(tokenName string) ([]string, error) {
 		return []string{}, err
 	}
 
-	return []string{token, "token"}, nil
+	return []string{token, authType}, nil
 }
 
 func (graylog Graylog) getToken(tokenName string) (string, error) {
@@ -66,13 +71,8 @@ func (graylog *Graylog) setToken(tokenName string) error {
 		return err
 	}
 
-	failure, err := graylog.handleFailure(response, status)
-	if err != nil {
+	if err := graylog.handleFailure(response, status); err != nil {
 		return err
-	}
-
-	if failure != nil {
-		return errors.New(failure.Message)
 	}
 
 	tokenResponse := &dto.TokenResponse{}
@@ -85,15 +85,19 @@ func (graylog *Graylog) setToken(tokenName string) error {
 	return nil
 }
 
-func (graylog *Graylog) handleFailure(response []byte, status int) (*dto.ErrorResponse, error) {
-	if status >= 200 && status < 299 {
-		return nil, nil
+func (graylog *Graylog) handleFailure(response []byte, status int) error {
+	if status >= http.StatusOK && status < http.StatusMultipleChoices {
+		return nil
 	}
 
 	failure := dto.ErrorResponse{}
 	if err := json.Unmarshal(response, &failure); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &failure, nil
+	if failure.Message != "" {
+		return errors.New(failure.Message)
+	}
+
+	return nil
 }

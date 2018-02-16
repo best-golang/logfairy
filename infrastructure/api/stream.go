@@ -3,14 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/uniplaces/logfairy/dto/stream"
 	"github.com/uniplaces/logfairy/infrastructure/api/dto"
 )
 
-// endpoint constants
+// endpoint used from stream client
 const (
 	streams = "/api/streams"
 	// /api/streams/<stream_id>
@@ -18,6 +17,7 @@ const (
 	streamTokenName = "streams"
 )
 
+// StreamClient is a graylog client specialized in stream actions
 type StreamClient struct {
 	Graylog
 }
@@ -27,6 +27,7 @@ func NewStreamClient(graylog Graylog) StreamClient {
 	return StreamClient{Graylog: graylog}
 }
 
+// List return all the streams it can reach
 func (streamClient *StreamClient) List() (stream.Streams, error) {
 	auth, err := streamClient.getAuth(streamTokenName)
 	if err != nil {
@@ -38,12 +39,8 @@ func (streamClient *StreamClient) List() (stream.Streams, error) {
 		return stream.Streams{}, err
 	}
 
-	failure, err := streamClient.handleFailure(response, status)
-	if err != nil {
+	if err := streamClient.handleFailure(response, status); err != nil {
 		return stream.Streams{}, err
-	}
-	if failure != nil {
-		return stream.Streams{}, errors.New(failure.Message)
 	}
 
 	list := stream.Streams{}
@@ -54,6 +51,7 @@ func (streamClient *StreamClient) List() (stream.Streams, error) {
 	return list, nil
 }
 
+// Get try to return a stream given the stream id
 func (streamClient *StreamClient) Get(streamID string) (stream.Stream, error) {
 	auth, err := streamClient.getAuth(streamTokenName)
 	if err != nil {
@@ -66,12 +64,8 @@ func (streamClient *StreamClient) Get(streamID string) (stream.Stream, error) {
 		return stream.Stream{}, err
 	}
 
-	failure, err := streamClient.handleFailure(response, status)
-	if err != nil {
+	if err := streamClient.handleFailure(response, status); err != nil {
 		return stream.Stream{}, err
-	}
-	if failure != nil {
-		return stream.Stream{}, errors.New(failure.Message)
 	}
 
 	streamFound := stream.Stream{}
@@ -82,6 +76,7 @@ func (streamClient *StreamClient) Get(streamID string) (stream.Stream, error) {
 	return streamFound, nil
 }
 
+// Create create a stream
 func (streamClient *StreamClient) Create(streamToCreate stream.Stream) (string, error) {
 	auth, err := streamClient.getAuth(streamTokenName)
 	if err != nil {
@@ -98,12 +93,8 @@ func (streamClient *StreamClient) Create(streamToCreate stream.Stream) (string, 
 		return "", err
 	}
 
-	failure, err := streamClient.handleFailure(response, status)
-	if err != nil {
+	if err := streamClient.handleFailure(response, status); err != nil {
 		return "", err
-	}
-	if failure != nil {
-		return "", errors.New(failure.Message)
 	}
 
 	success := dto.StreamCreation{}
