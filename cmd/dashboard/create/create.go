@@ -18,19 +18,19 @@ The expected json is:
   "description": "description for bar dashboard"
 }`
 
-func GetCommand(client dclient.Client) *cobra.Command {
-	var definitions string
+var Definitions string
 
+func GetCommand(client dclient.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "crate a dashboard",
 		Long:  long,
-		Run:   getRunDefinition(client, definitions),
+		Run:   getRunDefinition(client),
 	}
 
 	cmd.
 		Flags().
-		StringVarP(&definitions, "config", "c", "", "config file containing the dashboard definition")
+		StringVarP(&Definitions, "config", "c", "", "config file containing the dashboard definition")
 
 	if err := cmd.MarkFlagRequired("config"); err != nil {
 		log.Fatalln("no config flag was found")
@@ -39,9 +39,9 @@ func GetCommand(client dclient.Client) *cobra.Command {
 	return cmd
 }
 
-func getRunDefinition(client dclient.Client, definitions string) func(cmd *cobra.Command, args []string) {
+func getRunDefinition(client dclient.Client) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		definition, err := ioutil.ReadFile(definitions)
+		definition, err := ioutil.ReadFile(Definitions)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -51,15 +51,13 @@ func getRunDefinition(client dclient.Client, definitions string) func(cmd *cobra
 			log.Fatalln(err)
 		}
 
-		list, err := client.List()
+		dashboards, err := client.List()
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		for _, dashboardFound := range list.Dashboards {
-			if dashboardFound.Title == dashboardToCreate.Title {
-				log.Fatalln("dashboard already exists")
-			}
+		if _, exists := dashboards.GetByTitle(dashboardToCreate.Title); exists {
+			log.Fatalln("dashboard already exists")
 		}
 
 		dashboardID, err := client.Create(dashboardToCreate)

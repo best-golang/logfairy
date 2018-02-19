@@ -30,20 +30,22 @@ The expected structure is:
   }
 }`
 
-func GetCommand(widgetClient widget.Client, dashboardClient dclient.Client) *cobra.Command {
-	var dashboardWidgetID string
-	var definitions string
+var (
+	DashboardWidgetID string
+	Definitions       string
+)
 
+func GetCommand(widgetClient widget.Client, dashboardClient dclient.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "crate a widget",
 		Long:  long,
-		Run:   getRunDefinition(widgetClient, dashboardClient, definitions, dashboardWidgetID),
+		Run:   getRunDefinition(widgetClient, dashboardClient),
 	}
 
 	cmd.
 		Flags().
-		StringVarP(&dashboardWidgetID, "dashboard_id", "d", "", "id of dashboard containing the widget")
+		StringVarP(&DashboardWidgetID, "dashboard_id", "d", "", "id of dashboard containing the widget")
 
 	if err := cmd.MarkFlagRequired("dashboard_id"); err != nil {
 		log.Fatalln("no dashboard_id flag was found")
@@ -51,7 +53,7 @@ func GetCommand(widgetClient widget.Client, dashboardClient dclient.Client) *cob
 
 	cmd.
 		Flags().
-		StringVarP(&definitions, "config", "c", "", "config file containing the widget definition")
+		StringVarP(&Definitions, "config", "c", "", "config file containing the widget definition")
 
 	if err := cmd.MarkFlagRequired("config"); err != nil {
 		log.Fatalln("no config flag was found")
@@ -63,11 +65,9 @@ func GetCommand(widgetClient widget.Client, dashboardClient dclient.Client) *cob
 func getRunDefinition(
 	widgetClient widget.Client,
 	dashboardClient dclient.Client,
-	definitions string,
-	dashboardWidgetID string,
 ) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		definition, err := ioutil.ReadFile(definitions)
+		definition, err := ioutil.ReadFile(Definitions)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -77,18 +77,16 @@ func getRunDefinition(
 			log.Fatalln(err)
 		}
 
-		dashboard, err := dashboardClient.Get(dashboardWidgetID)
+		dashboard, err := dashboardClient.Get(DashboardWidgetID)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		for _, widgetFound := range dashboard.Widgets {
-			if widgetFound.Description == widgetToCreate.Description {
-				log.Fatalln("widget already exists")
-			}
+		if _, exists := dashboard.GetByDescription(widgetToCreate.Description); exists {
+			log.Fatalln("widget already exists")
 		}
 
-		widgetID, err := widgetClient.Create(widgetToCreate, dashboardWidgetID)
+		widgetID, err := widgetClient.Create(widgetToCreate, DashboardWidgetID)
 		if err != nil {
 			log.Fatalln(err)
 		}

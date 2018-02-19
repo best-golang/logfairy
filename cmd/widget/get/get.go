@@ -8,20 +8,22 @@ import (
 	"github.com/uniplaces/logfairy/infrastructure/api/widget"
 )
 
-func GetCommand(client widget.Client) *cobra.Command {
-	var widgetID string
-	var dashboardID string
+var (
+	WidgetID    string
+	DashboardID string
+)
 
+func GetCommand(client widget.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "list a single widget",
 		Long:  "widget get look up for a widget with the given widget id and print out the json.",
-		Run:   getRunDefinition(client, widgetID, dashboardID),
+		Run:   getRunDefinition(client),
 	}
 
 	cmd.
 		Flags().
-		StringVarP(&widgetID, "widget_id", "s", "", "id of widget to find")
+		StringVarP(&WidgetID, "widget_id", "s", "", "id of widget to find")
 
 	if err := cmd.MarkFlagRequired("widget_id"); err != nil {
 		log.Fatalln("no widget_id flag was found")
@@ -29,7 +31,7 @@ func GetCommand(client widget.Client) *cobra.Command {
 
 	cmd.
 		Flags().
-		StringVarP(&dashboardID, "dashboard_id", "d", "", "id of dashboard containing the widget")
+		StringVarP(&DashboardID, "dashboard_id", "d", "", "id of dashboard containing the widget")
 
 	if err := cmd.MarkFlagRequired("dashboard_id"); err != nil {
 		log.Fatalln("no dashboard_id flag was found")
@@ -38,13 +40,9 @@ func GetCommand(client widget.Client) *cobra.Command {
 	return cmd
 }
 
-func getRunDefinition(
-	client widget.Client,
-	widgetID string,
-	dashboardID string,
-) func(cmd *cobra.Command, args []string) {
+func getRunDefinition(client widget.Client) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		widget, err := client.Get(widgetID, dashboardID)
+		widget, err := client.Get(WidgetID, DashboardID)
 		if err != nil {
 			log.Fatalln(err)
 		}

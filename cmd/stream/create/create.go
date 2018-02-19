@@ -37,19 +37,19 @@ The expected json is:
 	"index_set_id": "5b0bfb3bgg857f3b700b58g5"
 }`
 
-func GetCommand(client sclient.Client) *cobra.Command {
-	var definitions string
+var Definitions string
 
+func GetCommand(client sclient.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "crate a stream",
 		Long:  long,
-		Run:   getRunDefinition(client, definitions),
+		Run:   getRunDefinition(client),
 	}
 
 	cmd.
 		Flags().
-		StringVarP(&definitions, "config", "c", "", "config file containing the stream definition")
+		StringVarP(&Definitions, "config", "c", "", "config file containing the stream definition")
 
 	if err := cmd.MarkFlagRequired("config"); err != nil {
 		log.Fatalln("no config flag was found")
@@ -58,9 +58,9 @@ func GetCommand(client sclient.Client) *cobra.Command {
 	return cmd
 }
 
-func getRunDefinition(client sclient.Client, definitions string) func(cmd *cobra.Command, args []string) {
+func getRunDefinition(client sclient.Client) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		definition, err := ioutil.ReadFile(definitions)
+		definition, err := ioutil.ReadFile(Definitions)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -70,15 +70,13 @@ func getRunDefinition(client sclient.Client, definitions string) func(cmd *cobra
 			log.Fatalln(err)
 		}
 
-		list, err := client.List()
+		streams, err := client.List()
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		for _, streamFound := range list.Streams {
-			if streamFound.Title == streamToCreate.Title {
-				log.Fatalln("stream already exists")
-			}
+		if _, exists := streams.GetByTitle(streamToCreate.Title); exists {
+			log.Fatalln("stream already exists")
 		}
 
 		streamID, err := client.Create(streamToCreate)

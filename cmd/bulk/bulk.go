@@ -76,23 +76,23 @@ const (
 	the position definied for the value stream_id.`
 )
 
+var Definitions string
+
 func GetCommand(
 	streamClient sclient.Client,
 	dashboardClient dclient.Client,
 	widgetClient wclient.Client,
 ) *cobra.Command {
-	var definitions string
-
 	cmd := &cobra.Command{
 		Use:   "bulk",
 		Short: "bulk allows to create a set of streams, dashboards and widgets",
 		Long:  bulkLong,
-		Run:   getRunDefinition(streamClient, dashboardClient, widgetClient, definitions),
+		Run:   getRunDefinition(streamClient, dashboardClient, widgetClient),
 	}
 
 	cmd.
 		Flags().
-		StringVarP(&definitions, "config", "c", "", "config file containing the definitions")
+		StringVarP(&Definitions, "config", "c", "", "config file containing the definitions")
 
 	if err := cmd.MarkFlagRequired("config"); err != nil {
 		log.Fatalln("no config flag was found")
@@ -105,10 +105,9 @@ func getRunDefinition(
 	streamClient sclient.Client,
 	dashboardClient dclient.Client,
 	widgetClient wclient.Client,
-	definitions string,
 ) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		definition, err := ioutil.ReadFile(definitions)
+		definition, err := ioutil.ReadFile(Definitions)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -136,6 +135,15 @@ func getRunDefinition(
 }
 
 func createStream(streamClient sclient.Client, streamToCreate *stream.Stream) error {
+	streams, err := streamClient.List()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if _, exists := streams.GetByTitle(streamToCreate.Title); exists {
+		return nil
+	}
+
 	streamID, err := streamClient.Create(*streamToCreate)
 	if err != nil {
 		return err
@@ -152,6 +160,15 @@ func createDashboard(
 	dashboardToCreate *dashboard.Dashboard,
 	streams []stream.Stream,
 ) error {
+	dashboards, err := dashboardClient.List()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if _, exists := dashboards.GetByTitle(dashboardToCreate.Title); exists {
+		return nil
+	}
+
 	widgets := extractWidgets(dashboardToCreate)
 	dashboardID, err := dashboardClient.Create(*dashboardToCreate)
 	if err != nil {
@@ -159,7 +176,7 @@ func createDashboard(
 	}
 
 	for _, widgetToCreate := range widgets {
-		if err := createWidget(widgetClient, widgetToCreate, dashboardID, streams); err != nil {
+		if err := createWidget(dashboardClient, widgetClient, widgetToCreate, dashboardID, streams); err != nil {
 			return err
 		}
 	}
@@ -168,11 +185,21 @@ func createDashboard(
 }
 
 func createWidget(
+	dashboardClient dclient.Client,
 	widgetClient wclient.Client,
 	widgetToCreate dashboard.Widget,
 	dashboardID string,
 	streams []stream.Stream,
 ) error {
+	dashboard, err := dashboardClient.Get(dashboardID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if _, exists := dashboard.GetByDescription(widgetToCreate.Description); exists {
+		return nil
+	}
+
 	streamPosition, err := strconv.Atoi(widgetToCreate.Config.StreamID)
 	if err != nil {
 		return err

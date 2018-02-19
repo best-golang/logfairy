@@ -32,3 +32,14 @@ type Rule struct {
 	Inverted    bool    `json:"inverted"`
 	Value       string  `json:"value"`
 }
+
+// GetByTitle return a stream by its title
+func (streams Streams) GetByTitle(title string) (Stream, bool) {
+	for _, streamFound := range streams.Streams {
+		if streamFound.Title == title {
+			return streamFound, true
+		}
+	}
+
+	return Stream{}, false
+}

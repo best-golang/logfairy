@@ -18,6 +18,7 @@ type Dashboard struct {
 	Widgets       []Widget   `json:"widgets,omitempty"`
 }
 
+// Widget Dashboard represent a graylog Widget
 type Widget struct {
 	CreatorUserID *string `json:"creator_user_id,omitempty"`
 	CacheTime     int     `json:"cache_time"`
@@ -27,6 +28,7 @@ type Widget struct {
 	Config        Config  `json:"config"`
 }
 
+// Config Dashboard represent a graylog widget's config
 type Config struct {
 	Timerange     Timerange `json:"timerange"`
 	LowerIsBetter bool      `json:"lower_is_better"`
@@ -35,7 +37,30 @@ type Config struct {
 	Query         string    `json:"query"`
 }
 
+// Dashboard represent a graylog widget's timerange
 type Timerange struct {
 	Type  string `json:"type"`
 	Range int    `json:"range"`
+}
+
+// GetByTitle return a stream by its title
+func (dashboards Dashboards) GetByTitle(title string) (Dashboard, bool) {
+	for _, dashboardFound := range dashboards.Dashboards {
+		if dashboardFound.Title == title {
+			return dashboardFound, true
+		}
+	}
+
+	return Dashboard{}, false
+}
+
+// GetByDescription return a stream by its title
+func (dashboard Dashboard) GetByDescription(description string) (Widget, bool) {
+	for _, widgetFound := range dashboard.Widgets {
+		if widgetFound.Description == description {
+			return widgetFound, true
+		}
+	}
+
+	return Widget{}, false
 }
