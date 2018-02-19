@@ -140,7 +140,9 @@ func createStream(streamClient sclient.Client, streamToCreate *stream.Stream) er
 		log.Fatalln(err)
 	}
 
-	if _, exists := streams.GetByTitle(streamToCreate.Title); exists {
+	if foundStream, exists := streams.GetByTitle(streamToCreate.Title); exists {
+		streamToCreate.ID = foundStream.ID
+
 		return nil
 	}
 
