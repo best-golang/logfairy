@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Client is a http client
+// Service is a http client
 type Service struct {
 	BaseURL string
 	client  http.Client
