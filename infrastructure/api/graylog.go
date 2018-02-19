@@ -25,7 +25,7 @@ var headers = map[string]string{
 }
 
 type Graylog struct {
-	client   service.Service
+	Client   service.Service
 	username string
 	password string
 	token    string
@@ -34,20 +34,39 @@ type Graylog struct {
 // New create an instance of Graylog api client
 func New(client service.Service, username string, password string) Graylog {
 	return Graylog{
-		client:   client,
+		Client:   client,
 		username: username,
 		password: password,
 		token:    "",
 	}
 }
 
-func (graylog *Graylog) getAuth(tokenName string) ([]string, error) {
+// GetAuth get the token to use for basic authentincation
+func (graylog *Graylog) GetAuth(tokenName string) ([]string, error) {
 	token, err := graylog.getToken(tokenName)
 	if err != nil {
 		return []string{}, err
 	}
 
 	return []string{token, authType}, nil
+}
+
+// HandleFailure handle the response in order to handle failures
+func (graylog *Graylog) HandleFailure(response []byte, status int) error {
+	if status >= http.StatusOK && status < http.StatusMultipleChoices {
+		return nil
+	}
+
+	failure := dto.ErrorResponse{}
+	if err := json.Unmarshal(response, &failure); err != nil {
+		return err
+	}
+
+	if failure.Message != "" {
+		return errors.New(failure.Message)
+	}
+
+	return nil
 }
 
 func (graylog Graylog) getToken(tokenName string) (string, error) {
@@ -66,12 +85,12 @@ func (graylog *Graylog) setToken(tokenName string) error {
 	auth := []string{graylog.username, graylog.password}
 
 	endpoint := fmt.Sprintf(tokensStream, graylog.username, tokenName)
-	response, status, err := graylog.client.Post(endpoint, headers, auth, nil)
+	response, status, err := graylog.Client.Post(endpoint, headers, auth, nil)
 	if err != nil {
 		return err
 	}
 
-	if err := graylog.handleFailure(response, status); err != nil {
+	if err := graylog.HandleFailure(response, status); err != nil {
 		return err
 	}
 
@@ -81,23 +100,6 @@ func (graylog *Graylog) setToken(tokenName string) error {
 	}
 
 	graylog.token = tokenResponse.Token
-
-	return nil
-}
-
-func (graylog *Graylog) handleFailure(response []byte, status int) error {
-	if status >= http.StatusOK && status < http.StatusMultipleChoices {
-		return nil
-	}
-
-	failure := dto.ErrorResponse{}
-	if err := json.Unmarshal(response, &failure); err != nil {
-		return err
-	}
-
-	if failure.Message != "" {
-		return errors.New(failure.Message)
-	}
 
 	return nil
 }
