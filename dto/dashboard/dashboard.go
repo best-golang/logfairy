@@ -31,6 +31,7 @@ type Widget struct {
 // Config Dashboard represent a graylog widget's config
 type Config struct {
 	Timerange     Timerange `json:"timerange"`
+	Interval      *string   `json:"interval,omitempty"`
 	LowerIsBetter bool      `json:"lower_is_better"`
 	StreamID      string    `json:"stream_id"`
 	Trend         bool      `json:"trend"`

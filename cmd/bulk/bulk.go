@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/dto/bulk"
@@ -20,8 +19,8 @@ const (
 	
 	The expected json is:
 	{
-		"streams": [
-			{
+		"streams": {
+			"foo_hash": {
 				"title": "foo",
 				"description": "description for foo",
 				"matching_type": "AND",
@@ -44,8 +43,8 @@ const (
 				"remove_matches_from_default_stream": false,
 				"index_set_id": "5b0bfb3bgg857f3b700b58g5"
 			}
-		],
-		"dashboard": [
+		},
+		"dashboards": [
 			{
 				"title": "bar",
 				"description": "description for bar dashboard",
@@ -60,7 +59,7 @@ const (
 								"range": 86400
 							},
 							"lower_is_better": false,
-							"stream_id": "0",
+							"stream_id": "foo_hash",
 							"trend": true,
 							"query": "foo bar"
 						}
@@ -117,7 +116,7 @@ func getRunDefinition(
 			log.Fatalln(err)
 		}
 
-		updatedStream := make([]stream.Stream, len(bulkObject.Streams))
+		updatedStream := make(map[string]stream.Stream, len(bulkObject.Streams))
 		for index, streamToCreate := range bulkObject.Streams {
 			if err := createStream(streamClient, &streamToCreate); err != nil {
 				log.Fatalln(err)
@@ -160,19 +159,19 @@ func createDashboard(
 	dashboardClient dclient.Client,
 	widgetClient wclient.Client,
 	dashboardToCreate *dashboard.Dashboard,
-	streams []stream.Stream,
+	streams map[string]stream.Stream,
 ) error {
 	dashboards, err := dashboardClient.List()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	widgets := extractWidgets(dashboardToCreate)
 	dashboardID, err := getDashboardID(dashboardClient, dashboards, *dashboardToCreate)
 	if err != nil {
-		return nil
+		return err
 	}
 
-	widgets := extractWidgets(dashboardToCreate)
 	for _, widgetToCreate := range widgets {
 		if err := createWidget(dashboardClient, widgetClient, widgetToCreate, dashboardID, streams); err != nil {
 			return err
@@ -188,11 +187,11 @@ func getDashboardID(
 	dashboardToCreate dashboard.Dashboard,
 ) (string, error) {
 	foundDashboard, exists := dashboards.GetByTitle(dashboardToCreate.Title)
-	if exists {
-		return *foundDashboard.ID, nil
+	if !exists {
+		return dashboardClient.Create(dashboardToCreate)
 	}
 
-	return dashboardClient.Create(dashboardToCreate)
+	return *foundDashboard.ID, nil
 }
 
 func createWidget(
@@ -200,7 +199,7 @@ func createWidget(
 	widgetClient wclient.Client,
 	widgetToCreate dashboard.Widget,
 	dashboardID string,
-	streams []stream.Stream,
+	streams map[string]stream.Stream,
 ) error {
 	dashboard, err := dashboardClient.Get(dashboardID)
 	if err != nil {
@@ -211,12 +210,7 @@ func createWidget(
 		return nil
 	}
 
-	streamPosition, err := strconv.Atoi(widgetToCreate.Config.StreamID)
-	if err != nil {
-		return err
-	}
-
-	widgetToCreate.Config.StreamID = *streams[streamPosition].ID
+	widgetToCreate.Config.StreamID = *streams[widgetToCreate.Config.StreamID].ID
 	widgetToCreate.Config.StreamID, err = widgetClient.Create(widgetToCreate, dashboardID)
 
 	return err
