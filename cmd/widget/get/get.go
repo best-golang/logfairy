@@ -23,7 +23,7 @@ func GetCommand(client widget.Client) *cobra.Command {
 
 	cmd.
 		Flags().
-		StringVarP(&WidgetID, "widget_id", "s", "", "id of widget to find")
+		StringVarP(&WidgetID, "widget_id", "w", "", "id of widget to find")
 
 	if err := cmd.MarkFlagRequired("widget_id"); err != nil {
 		log.Fatalln("no widget_id flag was found")

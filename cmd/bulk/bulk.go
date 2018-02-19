@@ -167,16 +167,12 @@ func createDashboard(
 		log.Fatalln(err)
 	}
 
-	if _, exists := dashboards.GetByTitle(dashboardToCreate.Title); exists {
+	dashboardID, err := getDashboardID(dashboardClient, dashboards, *dashboardToCreate)
+	if err != nil {
 		return nil
 	}
 
 	widgets := extractWidgets(dashboardToCreate)
-	dashboardID, err := dashboardClient.Create(*dashboardToCreate)
-	if err != nil {
-		return err
-	}
-
 	for _, widgetToCreate := range widgets {
 		if err := createWidget(dashboardClient, widgetClient, widgetToCreate, dashboardID, streams); err != nil {
 			return err
@@ -184,6 +180,19 @@ func createDashboard(
 	}
 
 	return nil
+}
+
+func getDashboardID(
+	dashboardClient dclient.Client,
+	dashboards dashboard.Dashboards,
+	dashboardToCreate dashboard.Dashboard,
+) (string, error) {
+	foundDashboard, exists := dashboards.GetByTitle(dashboardToCreate.Title)
+	if exists {
+		return *foundDashboard.ID, nil
+	}
+
+	return dashboardClient.Create(dashboardToCreate)
 }
 
 func createWidget(

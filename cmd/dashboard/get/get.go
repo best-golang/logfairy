@@ -20,7 +20,7 @@ func GetCommand(client dashboard.Client) *cobra.Command {
 
 	cmd.
 		Flags().
-		StringVarP(&DashboardID, "dashboard_id", "s", "", "id of dashboard to find")
+		StringVarP(&DashboardID, "dashboard_id", "d", "", "id of dashboard to find")
 
 	if err := cmd.MarkFlagRequired("dashboard_id"); err != nil {
 		log.Fatalln("no dashboard_id flag was found")
