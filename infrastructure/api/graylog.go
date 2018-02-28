@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/uniplaces/logfairy/infrastructure/api/dto"
-	"github.com/uniplaces/logfairy/infrastructure/api/service"
 )
 
 // endpoint constants
@@ -24,15 +23,16 @@ var headers = map[string]string{
 	"Content-Type": "application/json",
 }
 
+// Graylog represents an api client specialised in graylog authentication
 type Graylog struct {
-	Client   service.Service
+	Client   Client
 	username string
 	password string
 	token    string
 }
 
 // New create an instance of Graylog api client
-func New(client service.Service, username string, password string) Graylog {
+func New(client Client, username string, password string) Graylog {
 	return Graylog{
 		Client:   client,
 		username: username,

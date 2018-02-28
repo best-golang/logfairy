@@ -1,5 +1,12 @@
 # LOGFAIRY
 
+======
+[![Build Status](https://travis-ci.org/uniplaces/logfairy.svg?branch=master)](https://travis-ci.org/uniplaces/logfairy)
+[![Go Report Card](https://goreportcard.com/badge/github.com/uniplaces/logfairy)](https://goreportcard.com/report/github.com/uniplaces/logfairy)
+[![codecov](https://codecov.io/gh/uniplaces/logfairy/branch/master/graph/badge.svg)](https://codecov.io/gh/uniplaces/logfairy)
+[![GoDoc](https://godoc.org/github.com/uniplaces/logfairy?status.svg)](https://godoc.org/github.com/uniplaces/logfairy)
+[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+
 Client to handle [Graylog2](https://www.graylog.org/) features throught API build on top of [cobra](https://github.com/spf13/cobra).
 
 ## Prerequisites
@@ -15,10 +22,10 @@ $ curl -v -XPOST -u ADMIN:PASSWORD \
   -H 'Content-Type: application/json' \
   'http://<host>:<port>/api/roles' \
   -d "{\
-    'read_only': false, \
-    'permissions': ['users:tokenlist', 'users:tokencreate', 'users:tokenremove'], \
-    'name': 'token access', \
-    'description': 'Permission to query for token, mandatatory to use api' \
+    \"read_only\": false, \
+    \"permissions\": [\"users:tokenlist\", \"users:tokencreate\", \"users:tokenremove\"], \
+    \"name\": \"token access\", \
+    \"description\": \"Permission to query for token, mandatatory to use api\" \
     }"
 ```
 
@@ -29,10 +36,10 @@ $ curl -v -XPOST -u ADMIN:PASSWORD \
   -H 'Content-Type: application/json' \
   'http://<host>:<port>/api/roles' \
   -d "{\
-    'read_only': false, \
-    'permissions': ['streams:create', 'streams:read', 'streams:edit', 'streams:changestate'], \
-    'name': 'stream master', \
-    'description': 'Permission to master streams' \
+    \"read_only\": false, \
+    \"permissions\": [\"streams:create\", \"streams:read\", \"streams:edit\", \"streams:changestate\"], \
+    \"name\": \"stream master\", \
+    \"description\": \"Permission to master streams\" \
     }"
 ```
 
@@ -43,10 +50,10 @@ $ curl -v -XPOST -u ADMIN:PASSWORD \
   -H 'Content-Type: application/json' \
   'http://<host>:<port>/api/roles' \
   -d "{\
-    'read_only': false, \
-    'permissions': ['dashboards:create', 'dashboards:read', 'dashboards:edit'], \
-    'name': 'dashboard master', \
-    'description': 'Permission to master dashboards' \
+    \"read_only\": false, \
+    \"permissions\": [\"dashboards:create\", \"dashboards:read\", \"dashboards:edit\"], \
+    \"name\": \"dashboard master\", \
+    \"description\": \"Permission to master dashboards\" \
     }"
 ```
 
