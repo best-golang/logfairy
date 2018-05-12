@@ -25,7 +25,7 @@ var headers = map[string]string{
 
 // Graylog represents an api client specialised in graylog authentication
 type Graylog struct {
-	Client   Client
+	client   Client
 	username string
 	password string
 	token    string
@@ -34,7 +34,7 @@ type Graylog struct {
 // New create an instance of Graylog api client
 func New(client Client, username string, password string) Graylog {
 	return Graylog{
-		Client:   client,
+		client:   client,
 		username: username,
 		password: password,
 		token:    "",
@@ -85,7 +85,7 @@ func (graylog *Graylog) setToken(tokenName string) error {
 	auth := []string{graylog.username, graylog.password}
 
 	endpoint := fmt.Sprintf(tokensStream, graylog.username, tokenName)
-	response, status, err := graylog.Client.Post(endpoint, headers, auth, nil)
+	response, status, err := graylog.client.Post(endpoint, headers, auth, nil)
 	if err != nil {
 		return err
 	}

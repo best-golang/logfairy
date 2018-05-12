@@ -9,9 +9,9 @@ import (
 	"github.com/uniplaces/logfairy/dto/bulk"
 	"github.com/uniplaces/logfairy/dto/dashboard"
 	"github.com/uniplaces/logfairy/dto/stream"
-	dclient "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
-	sclient "github.com/uniplaces/logfairy/infrastructure/api/stream"
-	wclient "github.com/uniplaces/logfairy/infrastructure/api/widget"
+	dapi "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	sapi "github.com/uniplaces/logfairy/infrastructure/api/stream"
+	wapi "github.com/uniplaces/logfairy/infrastructure/api/widget"
 )
 
 const (
@@ -78,9 +78,9 @@ const (
 var Definitions string
 
 func GetCommand(
-	streamClient sclient.Client,
-	dashboardClient dclient.Client,
-	widgetClient wclient.Client,
+	streamClient sapi.Stream,
+	dashboardClient dapi.Dashboard,
+	widgetClient wapi.Widget,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bulk",
@@ -101,9 +101,9 @@ func GetCommand(
 }
 
 func getRunDefinition(
-	streamClient sclient.Client,
-	dashboardClient dclient.Client,
-	widgetClient wclient.Client,
+	streamClient sapi.Stream,
+	dashboardClient dapi.Dashboard,
+	widgetClient wapi.Widget,
 ) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		definition, err := ioutil.ReadFile(Definitions)
@@ -133,7 +133,7 @@ func getRunDefinition(
 	}
 }
 
-func createStream(streamClient sclient.Client, streamToCreate *stream.Stream) error {
+func createStream(streamClient sapi.Stream, streamToCreate *stream.Stream) error {
 	streams, err := streamClient.List()
 	if err != nil {
 		log.Fatalln(err)
@@ -156,8 +156,8 @@ func createStream(streamClient sclient.Client, streamToCreate *stream.Stream) er
 }
 
 func createDashboard(
-	dashboardClient dclient.Client,
-	widgetClient wclient.Client,
+	dashboardClient dapi.Dashboard,
+	widgetClient wapi.Widget,
 	dashboardToCreate *dashboard.Dashboard,
 	streams map[string]stream.Stream,
 ) error {
@@ -182,7 +182,7 @@ func createDashboard(
 }
 
 func getDashboardID(
-	dashboardClient dclient.Client,
+	dashboardClient dapi.Dashboard,
 	dashboards dashboard.Dashboards,
 	dashboardToCreate dashboard.Dashboard,
 ) (string, error) {
@@ -195,8 +195,8 @@ func getDashboardID(
 }
 
 func createWidget(
-	dashboardClient dclient.Client,
-	widgetClient wclient.Client,
+	dashboardClient dapi.Dashboard,
+	widgetClient wapi.Widget,
 	widgetToCreate dashboard.Widget,
 	dashboardID string,
 	streams map[string]stream.Stream,

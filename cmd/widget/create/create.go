@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/dto/dashboard"
-	dclient "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
-	"github.com/uniplaces/logfairy/infrastructure/api/widget"
+	dapi "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	wapi "github.com/uniplaces/logfairy/infrastructure/api/widget"
 )
 
 const long = `widget create will try to create the widget defined in the config file.
@@ -35,7 +35,7 @@ var (
 	Definitions       string
 )
 
-func GetCommand(widgetClient widget.Client, dashboardClient dclient.Client) *cobra.Command {
+func GetCommand(widgetClient wapi.Widget, dashboardClient dapi.Dashboard) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "crate a widget",
@@ -63,8 +63,8 @@ func GetCommand(widgetClient widget.Client, dashboardClient dclient.Client) *cob
 }
 
 func getRunDefinition(
-	widgetClient widget.Client,
-	dashboardClient dclient.Client,
+	widgetClient wapi.Widget,
+	dashboardClient dapi.Dashboard,
 ) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		definition, err := ioutil.ReadFile(Definitions)

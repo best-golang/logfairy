@@ -4,11 +4,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/cmd/widget/create"
 	"github.com/uniplaces/logfairy/cmd/widget/get"
-	"github.com/uniplaces/logfairy/infrastructure/api/dashboard"
-	"github.com/uniplaces/logfairy/infrastructure/api/widget"
+	dapi "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	wapi "github.com/uniplaces/logfairy/infrastructure/api/widget"
 )
 
-func GetCommand(widgetClient widget.Client, dashboardClient dashboard.Client) *cobra.Command {
+func GetCommand(widgetClient wapi.Widget, dashboardClient dapi.Dashboard) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "widget",
 		Short: "handle widget actions",

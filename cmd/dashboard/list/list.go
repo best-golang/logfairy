@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/helpers"
-	"github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	api "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
 )
 
-func GetCommand(client dashboard.Client) *cobra.Command {
+func GetCommand(client api.Dashboard) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "list dashboards",
@@ -17,7 +17,7 @@ func GetCommand(client dashboard.Client) *cobra.Command {
 	}
 }
 
-func getRunDefinition(client dashboard.Client) func(cmd *cobra.Command, args []string) {
+func getRunDefinition(client api.Dashboard) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		dashboards, err := client.List()
 		if err != nil {

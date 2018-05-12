@@ -6,17 +6,17 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/uniplaces/logfairy/infrastructure/api"
-	"github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	dapi "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
 	srv "github.com/uniplaces/logfairy/infrastructure/api/service"
-	"github.com/uniplaces/logfairy/infrastructure/api/stream"
-	"github.com/uniplaces/logfairy/infrastructure/api/widget"
+	sapi "github.com/uniplaces/logfairy/infrastructure/api/stream"
+	wapi "github.com/uniplaces/logfairy/infrastructure/api/widget"
 )
 
 // Dependencies of the application
 type Dependencies struct {
-	DashboardClient dashboard.Client
-	StreamClient    stream.Client
-	WidgetClient    widget.Client
+	DashboardClient dapi.Dashboard
+	StreamClient    sapi.Stream
+	WidgetClient    wapi.Widget
 }
 
 // setup reads in config file and ENV variables if set.
@@ -35,8 +35,8 @@ func Setup() Dependencies {
 	graylog := api.New(service, os.Getenv("GRAYLOG_USERNAME"), os.Getenv("GRAYLOG_PASSWORD"))
 
 	return Dependencies{
-		DashboardClient: dashboard.New(graylog),
-		StreamClient:    stream.New(graylog),
-		WidgetClient:    widget.New(graylog),
+		DashboardClient: dapi.New(service, &graylog),
+		StreamClient:    sapi.New(service, &graylog),
+		WidgetClient:    wapi.New(service, &graylog),
 	}
 }

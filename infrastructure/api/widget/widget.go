@@ -16,44 +16,45 @@ var headers = map[string]string{
 	"Content-Type": "application/json",
 }
 
-// Client is a graylog client specialized in widget actions
-type Client struct {
-	api.Graylog
+// Widget is a graylog client specialized in widget actions
+type Widget struct {
+	api.Client
+	api.GraylogBase
 }
 
 // New create an instance of Graylog deashboard api client
-func New(graylog api.Graylog) Client {
-	return Client{Graylog: graylog}
+func New(client api.Client, graylog api.GraylogBase) Widget {
+	return Widget{Client: client, GraylogBase: graylog}
 }
 
 // Get try to return a widget given the widget id and the dashboard id
-func (client *Client) Get(widgetID string, dashnoardID string) (dashboard.Widget, error) {
-	auth, err := client.GetAuth(widgetTokenName)
+func (widget *Widget) Get(widgetID string, dashnoardID string) (dashboard.Widget, error) {
+	auth, err := widget.GetAuth(widgetTokenName)
 	if err != nil {
 		return dashboard.Widget{}, err
 	}
 
 	endpoint := fmt.Sprintf(GetEndpoint.String(), dashnoardID, widgetID)
-	response, status, err := client.Client.Get(endpoint, headers, auth, nil)
+	response, status, err := widget.Client.Get(endpoint, headers, auth, nil)
 	if err != nil {
 		return dashboard.Widget{}, err
 	}
 
-	if err := client.HandleFailure(response, status); err != nil {
+	if err := widget.HandleFailure(response, status); err != nil {
 		return dashboard.Widget{}, err
 	}
 
-	dashboardFound := dashboard.Widget{}
-	if err := json.Unmarshal(response, &dashboardFound); err != nil {
+	widgetFound := dashboard.Widget{}
+	if err := json.Unmarshal(response, &widgetFound); err != nil {
 		return dashboard.Widget{}, err
 	}
 
-	return dashboardFound, nil
+	return widgetFound, nil
 }
 
 // Create create a widget for the given dashboard
-func (client *Client) Create(widgetToCreate dashboard.Widget, dashnoardID string) (string, error) {
-	auth, err := client.GetAuth(widgetTokenName)
+func (widget *Widget) Create(widgetToCreate dashboard.Widget, dashnoardID string) (string, error) {
+	auth, err := widget.GetAuth(widgetTokenName)
 	if err != nil {
 		return "", err
 	}
@@ -64,12 +65,12 @@ func (client *Client) Create(widgetToCreate dashboard.Widget, dashnoardID string
 	}
 
 	endpoint := fmt.Sprintf(CreateEndpoint.String(), dashnoardID)
-	response, status, err := client.Client.Post(endpoint, headers, auth, bytes.NewBuffer(body))
+	response, status, err := widget.Client.Post(endpoint, headers, auth, bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
 	}
 
-	if err := client.HandleFailure(response, status); err != nil {
+	if err := widget.HandleFailure(response, status); err != nil {
 		return "", err
 	}
 

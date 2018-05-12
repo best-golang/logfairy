@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/dto/dashboard"
-	dclient "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	api "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
 )
 
 const long = `dashboard create will try to create the dashboard defined in the config file.
@@ -20,7 +20,7 @@ The expected json is:
 
 var Definitions string
 
-func GetCommand(client dclient.Client) *cobra.Command {
+func GetCommand(client api.Dashboard) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "crate a dashboard",
@@ -39,7 +39,7 @@ func GetCommand(client dclient.Client) *cobra.Command {
 	return cmd
 }
 
-func getRunDefinition(client dclient.Client) func(cmd *cobra.Command, args []string) {
+func getRunDefinition(client api.Dashboard) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		definition, err := ioutil.ReadFile(Definitions)
 		if err != nil {

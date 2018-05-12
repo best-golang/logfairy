@@ -16,18 +16,19 @@ var headers = map[string]string{
 	"Content-Type": "application/json",
 }
 
-// Client is a graylog client specialized in dashboard actions
-type Client struct {
-	api.Graylog
+// Dashboard is a graylog client specialized in dashboard actions
+type Dashboard struct {
+	api.Client
+	api.GraylogBase
 }
 
 // New create an instance of Graylog deashboard api client
-func New(graylog api.Graylog) Client {
-	return Client{Graylog: graylog}
+func New(client api.Client, graylog api.GraylogBase) Dashboard {
+	return Dashboard{Client: client, GraylogBase: graylog}
 }
 
 // List return all the dashboards it can reach
-func (client *Client) List() (dashboard.Dashboards, error) {
+func (client *Dashboard) List() (dashboard.Dashboards, error) {
 	auth, err := client.GetAuth(dashboardTokenName)
 	if err != nil {
 		return dashboard.Dashboards{}, err
@@ -51,7 +52,7 @@ func (client *Client) List() (dashboard.Dashboards, error) {
 }
 
 // Get try to return a dashboard given the dashboard id
-func (client *Client) Get(dashboardID string) (dashboard.Dashboard, error) {
+func (client *Dashboard) Get(dashboardID string) (dashboard.Dashboard, error) {
 	auth, err := client.GetAuth(dashboardTokenName)
 	if err != nil {
 		return dashboard.Dashboard{}, err
@@ -76,7 +77,7 @@ func (client *Client) Get(dashboardID string) (dashboard.Dashboard, error) {
 }
 
 // Create create a dashboard
-func (client *Client) Create(dashboardToCreate dashboard.Dashboard) (string, error) {
+func (client *Dashboard) Create(dashboardToCreate dashboard.Dashboard) (string, error) {
 	auth, err := client.GetAuth(dashboardTokenName)
 	if err != nil {
 		return "", err

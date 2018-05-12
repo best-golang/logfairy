@@ -5,10 +5,10 @@ import (
 	"github.com/uniplaces/logfairy/cmd/dashboard/create"
 	"github.com/uniplaces/logfairy/cmd/dashboard/get"
 	"github.com/uniplaces/logfairy/cmd/dashboard/list"
-	"github.com/uniplaces/logfairy/infrastructure/api/dashboard"
+	api "github.com/uniplaces/logfairy/infrastructure/api/dashboard"
 )
 
-func GetCommand(client dashboard.Client) *cobra.Command {
+func GetCommand(client api.Dashboard) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dashboard",
 		Short: "handle dashboard actions",

@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/uniplaces/logfairy/helpers"
-	"github.com/uniplaces/logfairy/infrastructure/api/widget"
+	api "github.com/uniplaces/logfairy/infrastructure/api/widget"
 )
 
 var (
@@ -13,7 +13,7 @@ var (
 	DashboardID string
 )
 
-func GetCommand(client widget.Client) *cobra.Command {
+func GetCommand(client api.Widget) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "list a single widget",
@@ -40,7 +40,7 @@ func GetCommand(client widget.Client) *cobra.Command {
 	return cmd
 }
 
-func getRunDefinition(client widget.Client) func(cmd *cobra.Command, args []string) {
+func getRunDefinition(client api.Widget) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		widget, err := client.Get(WidgetID, DashboardID)
 		if err != nil {
