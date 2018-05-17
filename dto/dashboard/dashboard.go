@@ -30,12 +30,18 @@ type Widget struct {
 
 // Config Dashboard represent a graylog widget's config
 type Config struct {
-	Timerange     Timerange `json:"timerange"`
-	Interval      *string   `json:"interval,omitempty"`
-	LowerIsBetter bool      `json:"lower_is_better"`
-	StreamID      string    `json:"stream_id"`
-	Trend         bool      `json:"trend"`
-	Query         string    `json:"query"`
+	Timerange      Timerange `json:"timerange"`
+	Interval       *string   `json:"interval,omitempty"`
+	LowerIsBetter  bool      `json:"lower_is_better"`
+	StreamID       string    `json:"stream_id"`
+	Trend          bool      `json:"trend"`
+	Query          string    `json:"query"`
+	Field          *string   `json:"field,omitempty"`
+	ShowPieChart   *bool     `json:"show_pie_chart,omitempty"`
+	Limit          *int      `json:"limit,omitempty"`
+	ShowDataTable  *bool     `json:"show_data_table,omitempty"`
+	DataTableLimit *int      `json:"data_table_limit,omitempty"`
+	SortOrder      *string   `json:"sort_order,omitempty"`
 }
 
 // Dashboard represent a graylog widget's timerange
